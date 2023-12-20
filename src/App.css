@@ -1,0 +1,17 @@
+div {
+    display: inline-block;
+    margin-inline-end: 3rem;
+}
+
+.circle {
+    inline-size: 2rem;
+    block-size: 2rem;
+    border-radius: 50%;
+    background-color: red;
+}
+
+.square {
+    inline-size: 2rem;
+    block-size: 2rem;
+    background-color: red;
+}
