@@ -1,7 +1,7 @@
 import "./App.css";
 // import { useImmer } from 'use-immer';
 import { useEffect, useState } from "react";
-import Form from "./Form.jsx";
+import EditProfile from "./EditProfile.jsx";
 
 let statuses = [
   'empty',
@@ -16,7 +16,7 @@ export default function App() {
 
   return (
   <>
-    <Form />
+    <EditProfile />
   </>
   );
 }
