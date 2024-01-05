@@ -1,7 +1,7 @@
 import "./App.css";
 // import { useImmer } from 'use-immer';
 import { useEffect, useState } from "react";
-import FeedbackForm from "./FeedbackForm.jsx";
+import Form from "./Form.jsx";
 
 let statuses = [
   'empty',
@@ -16,7 +16,7 @@ export default function App() {
 
   return (
   <>
-    <FeedbackForm />
+    <Form />
   </>
   );
 }
