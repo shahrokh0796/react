@@ -1,22 +1,14 @@
 import "./App.css";
 // import { useImmer } from 'use-immer';
 import { useEffect, useState } from "react";
-import Form from "./Form.jsx";
-
-let statuses = [
-  'empty',
-  'typing',
-  'submitting',
-  'success',
-  'error',
-];
+import Menu from "./Menu.jsx";
 
 
 export default function App() {
 
   return (
   <>
-    <Form />
+    <Menu />
   </>
   );
 }
