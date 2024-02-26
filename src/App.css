@@ -1,17 +1,19 @@
-div {
+
+.counter {
+    padding: 1rem 1rem;
+    border: 1px solid #dadada;
+    text-align: center;
     display: inline-block;
-    margin-inline-end: 3rem;
+    margin-inline-end : 1rem;
+    cursor: pointer;
+}
+.button {
+    cursor: pointer;
+}
+.hover {
+    background-color: pink;
 }
 
-.circle {
-    inline-size: 2rem;
-    block-size: 2rem;
-    border-radius: 50%;
-    background-color: red;
-}
-
-.square {
-    inline-size: 2rem;
-    block-size: 2rem;
-    background-color: red;
+.fancy {
+    border: 5px solid orange;
 }
