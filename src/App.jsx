@@ -1,582 +1,386 @@
 import React from "react";
-import { useState, useReducer } from "react";
-import  taskReducer  from "./tasksReducer.jsx";
+import "./App.css";
+import Heading from "./Heading.jsx";
+import Section from "./Section.jsx";
 
-// Extracting State Logic into a Reducer
-// Components with many state updates spread across many event
-// handlers can get overwhelming. For these cases, you can consolidate
-// all the state update logic outside your component in a single
-// function, called a reducer
 
-// Consolidate state logic with a reducer
+// Passing Data Deeply with Context
 
-// As your components grow in complexity, it can get harder
-// to see at a glance all the different ways in which a component’s
-// state gets updated. For example, the TaskApp component below
-// holds an array of tasks in state and uses three different
-// event handlers to add, remove, and edit tasks:
+// Usually, you will pass information from a parent component to a child 
+// component via props. But passing props can become verbose and inconvenient if 
+// you have to pass them through many components in the middle, or if 
+// many components in your app need the same information. Context lets 
+// the parent component make some information available to any component in 
+// the tree below it—no matter how deep—without passing it explicitly 
+// through props.
 
-let nextId = 3;
-const initialTasks = [
-  { id: 0, text: "Visit Kafka Museum", done: true },
-  { id: 1, text: "Watch a puppet show", done: false },
-  { id: 2, text: "Lennon Wall pic", done: false },
-];
+// The problem with passing props
+
+// Passing props is a great way to explicitly pipe data through 
+// your UI tree to the components that use it.
+
+// But passing props can become verbose and inconvenient when 
+// you need to pass some prop deeply through the tree, or if 
+// many components need the same prop. The nearest common ancestor 
+// could be far removed from the components that need data, and 
+// lifting state up that high can lead to a situation called 
+// “prop drilling”.
+
+// Wouldn’t it be great if there were a way to “teleport” data to 
+// the components in the tree that need it without passing props? With React’s context feature, there is!
+
+// ===============================================================
+// Context: an alternative to passing props 
+// Context lets a parent component provide data to the entire tree 
+// below it. There are many uses for context. Here is one example. 
+// Consider this Heading component that accepts a level for its size:
+
 
 // export default function App() {
-//   return <TaskApp />;
+//     return <Page />
 // }
 
-// export function TaskApp() {
-//   const [tasks, setTasks] = useState(initialTasks);
-
-//   function handleAddTask(text) {
-//     setTasks([
-//       ...tasks,
-//       {
-//         id: nextId++,
-//         text: text,
-//         done: false,
-//       },
-//     ]);
-//   }
-
-//   function handleChangeTask(task) {
-//     setTasks(
-//       tasks.map((t) => {
-//         if (t.id === task.id) {
-//           return task;
-//         } else {
-//           return t;
-//         }
-//       })
+// export function Page() {
+//     return (
+//     <Section>
+//         <Heading level={1} > Title </Heading>
+//         <Heading level={2} > Heading </Heading>
+//         <Heading level={3} > Sub-heading </Heading>
+//         <Heading level={4} > Sub-sub-Heading </Heading>
+//         <Heading level={5} > Sub-sub-sub-Heading </Heading>
+//         <Heading level={6} > Sub-sub-sub-sub-Heading </Heading>
+//     </Section>
 //     );
-//   }
+// }
 
-//   function handleDeleteTask(taskId) {
-//     setTasks(
-//       tasks.filter((t) => {
-//         return t.id !== taskId;
-//       })
-//     );
-//   }
+// Let’s say you want multiple headings within the same Section to always have the same size:
 
+
+// export function Page() {
 //   return (
-//     <>
-//       <h1> Prague itinerary </h1>
-//       <AddTask onAddToTask={handleAddTask} />
-//       <TaskList
-//         tasks={tasks}
-//         onChangeTask={handleChangeTask}
-//         onDeleteTask={handleDeleteTask}
-//       />
-//     </>
+//     <Section>
+//       <Heading level={1}>Title</Heading>
+//       <Section>
+//         <Heading level={2}>Heading</Heading>
+//         <Heading level={2}>Heading</Heading>
+//         <Heading level={2}>Heading</Heading>
+//         <Section>
+//           <Heading level={3}>Sub-heading</Heading>
+//           <Heading level={3}>Sub-heading</Heading>
+//           <Heading level={3}>Sub-heading</Heading>
+//           <Section>
+//             <Heading level={4}>Sub-sub-heading</Heading>
+//             <Heading level={4}>Sub-sub-heading</Heading>
+//             <Heading level={4}>Sub-sub-heading</Heading>
+//           </Section>
+//         </Section>
+//       </Section>
+//     </Section>
 //   );
 // }
 
-// export function AddTask({ onAddToTask }) {
-//   const [text, setText] = useState("");
-//   return (
-//     <>
-//       <label>
-//         <input
-//           placeholder="Add task"
-//           onChange={(e) => {
-//             setText(e.target.value);
-//           }}
-//         />
-//         <button
-//           onClick={() => {
-//             onAddToTask(text);
-//           }}
-//         >
-//           Add
-//         </button>
-//       </label>
-//     </>
-//   );
-// }
+// Currently, you pass the level prop to each <Heading> separately:
 
-// export function TaskList({ tasks, onChangeTask, onDeleteTask }) {
-//   const [editTaskId, setEditTaskId] = useState(null);
+// It would be nice if you could pass the level prop to the <Section> 
+// component instead and remove it from the <Heading>. This way you 
+// could enforce that all headings in the same section have the same size:
 
+{/* <Section level={3}>
+  <Heading>About</Heading>
+  <Heading>Photos</Heading>
+  <Heading>Videos</Heading>
+</Section> */}
 
-//   return (
-//     <>
-//       <ul>
-//         {tasks.map((task) => (
-//           <li key={task.id}>
-            
-//             <input
-//               type="checkbox"
-//               checked={task.done}
-//               onChange={() => onChangeTask({ ...task, done: !task.done })}
-//             />{" "}
-//             {editTaskId === task.id ? (
-//               <>
-//                 <input
-//                   value={task.text}
-//                   onChange={(e) => onChangeTask({ ...task, text: e.target.value })}
-//                 />
-//                 <button onClick={() => setEditTaskId(null)}>Save</button>
-//               </>
-//             ) : (
-//               <>
-//                 {task.text}
-//                 <button onClick={() => setEditTaskId(task.id)}>Edit</button>
-//               </>
-//             )}
-//             {"  "}
-//             <button onClick={() => onDeleteTask(task.id)}>Delete</button>
-//           </li>
-//         ))}
-//       </ul>
-//     </>
-//   );
-// }
+// But how can the <Heading> component know the level of its closest <Section>? 
+// That would require some way for a child to “ask” for data from somewhere 
+// above in the tree.
+// =========================================================================
+// You can’t do it with props alone. This is where context comes into play. 
+// You will do it in three steps:
 
-/*
-Each of its event handlers calls setTasks in order to update the 
-state. As this component grows, so does the amount of state logic 
-sprinkled throughout it. To reduce this complexity and keep all 
-your logic in one easy-to-access place, you can move that state 
-logic into a single function outside your component, called a “reducer”.
-*/
+// 1-Create a context. (You can call it LevelContext, since it’s for the heading level.)
+// 2-Use that context from the component that needs the data. (Heading will use LevelContext.)
+// 3-Provide that context from the component that specifies the data. (Section will provide LevelContext.)
 
-// Reducers are a different way to handle state. You can migrate 
-// from useState to useReducer in three steps:
+// Context lets a parent—even a distant one!—provide some data to the entire tree inside of it.
 
-// 1-> Move from setting state to dispatching actions.
-// 2-> Write a reducer function.
-// 3-> Use the reducer from your component.
+// Context lets a parent—even a distant one!—provide some data to the entire tree inside of it.
 
-// Step 1: Move from setting state to dispatching actions 
+// Step 1: Create the context
 
-// Your event handlers currently specify what to do by setting state:
+// First, you need to create the context. You’ll need to export it from a file so that your components can use it:
 
-// function handleAddTask(text) {
-//   setTasks([
-//     ...tasks,
-//     {
-//       id: nextId++,
-//       text: text,
-//       done: false,
-//     },
-//   ]);
-// }
+// The only argument to createContext is the default value. Here, 1 refers 
+// to the biggest heading level, but you could pass any kind of value (even 
+// an object). You will see the significance of the default value in the 
+// next step.
 
-// function handleChangeTask(task) {
-//   setTasks(
-//     tasks.map((t) => {
-//       if (t.id === task.id) {
-//         return task;
-//       } else {
-//         return t;
-//       }
-//     })
-//   );
-// }
+// Step 2: Use the context // ---> go to Heading.jsx component
 
-// function handleDeleteTask(taskId) {
-//   setTasks(tasks.filter((t) => t.id !== taskId));
-// }
-
-// Remove all the state setting logic. What you are left with 
-// are three event handlers:
-
-// .handleAddTask(text) is called when the user presses “Add”.
-// .handleChangeTask(task) is called when the user toggles a task or presses “Save”.
-// .handleDeleteTask(taskId) is called when the user presses “Delete”.
-
-// Managing state with reducers is slightly different from directly 
-// setting state. Instead of telling React “what to do” by setting 
-// state, you specify “what the user just did” by dispatching 
-// “actions” from your event handlers. (The state update logic will 
-// live elsewhere!) So instead of “setting tasks” via an event 
-// handler, you’re dispatching an “added/changed/deleted a task” 
-// action. This is more descriptive of the user’s intent.
-
-// function handleAddTask(text) {
-//   dispatchEvent({
-//     type: 'added',
-//     id: nextId++,
-//     text: text,
-//   });
-// }
-
-// function handleChangeTask(task) {
-//   dispatchEvent({
-//     type: 'changed',
-//     task: task,
-//   });
+// export default function App() {
+//   return <Page />
 // }
 
 
-// function handleDeleteTask(taskId) {
-//   dispatchEvent({
-//     type: "deleted",
-//     id: taskId, 
-//   });
-// }
-// The object you pass to dispatch is called an “action”:
-
-// It is a regular JavaScript object. You decide what to put 
-// in it, but generally it should contain the minimal information 
-// about what happened. (You will add the dispatch function 
-// itself in a later step.)
-
-
-// Note
-// An action object can have any shape.
-// By convention, it is common to give it a string type that describes 
-// what happened, and pass any additional information in other 
-// fields. The type is specific to a component, so in this example 
-// either 'added' or 'added_task' would be fine. Choose a 
-// name that says what happened!
-
-// Step 2: Write a reducer function
-
-// A reducer function is where you will put your state logic. 
-// It takes two arguments, the current state and the action 
-// object, and it returns the next state:
-
-// function yourReducer(state, action) {
-  // return next state for React to set
-// }
-
-
-// React will set the state to what you return from the reducer.
-
-// To move your state setting logic from your event handlers to 
-// a reducer function in this example, you will:
-
-// 1-> Declare the current state (tasks) as the first argument.
-// 2->Declare the action object as the second argument.
-// ->Return the next state from the reducer (which React will set the state to).
-
-// Here is all the state setting logic migrated to a reducer function:
-
-// function taskReducer(tasks, action) {
-//   if (action.type === 'added') {
-//     return [
-//       ...tasks,
-//       {
-//         id: nextId++,
-//         text: action.text,
-//         done: false,
-//       },
-//     ];
-//   } else if (action.type === 'changed') {
-//     return tasks.map((task) => {
-//       if (task.id === action.task.id) {
-//         return action.task;
-//       } else {
-//         return task;
-//       }
-//     });
-//   } else if (action.type === 'deleted') {
-//     return tasks.filter((t) => t.id !== action.id);
-//   } else {
-//     throw Error("Unknown action: " + action.type);
-//   }
-// }
-
-// Because the reducer function takes state (tasks) as an argument, 
-// you can declare it outside of your component. This decreases 
-// the indentation level and can make your code easier to read.
-
-// The code above uses if/else statements, but it’s a convention 
-// to use switch statements inside reducers. The result is the 
-// same, but it can be easier to read switch statements at a 
-// glance.
-
-// We’ll be using them throughout the rest of this documentation like so:
-
-// function taskReducer(tasks, action) {
-//   switch(action.type) {
-//     case "added": {
-//       return [
-//         ...tasks,
-//         {
-//           id: nextId++,
-//           text: action.text,
-//           done: false,
-//         },
-//       ];
-//     }
-
-//     case "changed": {
-//     return tasks.map((t) => {
-//       if (t.id === action.task.id) {
-//         return action.task;
-//       } else {
-//         return t;
-//       }
-//     });
-//   }
-
-//     case "deleted": { 
-//     return tasks.filter(t => t.id !== action.id);
-//     }
-
-//     default: {
-//       throw Error("Unknown action: " + action.type);
-//     }
-//   }
-// }
-
-// We recommend wrapping each case block into the { and } curly 
-// braces so that variables declared inside of different cases
-//  don’t clash with each other. Also, a case should usually 
-// end with a return. If you forget to return, the code will 
-// “fall through” to the next case, which can lead to mistakes!
-
-// If you’re not yet comfortable with switch statements, using if/else is completely fine.
-
-
-// Step 3: Use the reducer from your component
-
-// Finally, you need to hook up the tasksReducer to your component. 
-// Import the useReducer Hook from React:
-
-// import { useRecuder } from 'react'; 
-
-// Then you can replace useState
-// const [tasks, setTasks] = useState(initialTasks);
-
-// with useReducer like so:
-
-// const [tasks, dispatch] = useReducer(taskReducer, initialTasks);
-
-// The useReducer Hook is similar to useState—you must pass 
-// it an initial state and it returns a stateful value and 
-// a way to set state (in this case, the dispatch function). 
-// But it’s a little different.
-
-// The useReducer Hook takes two arguments:
-// 1. A reducer function
-// 2. An initial state
-// And it returns:
-// 1. A stateful value
-// 2. A dispatch function (to “dispatch” user actions to the reducer)
-
-// Now it’s fully wired up! Here, the reducer is declared at 
-// the bottom of the component file:
-
-
-// export default function App () {
-//   return <TaskApp />
-// }
-
-// export function TaskApp() {
-//   const [tasks, dispatch] = useReducer(taskReducer, initialTasks);
-
-//   function handleAddTask(text) {
-//     dispatch({
-//       type: 'added',
-//       text: text,
-//       id: nextId++,
-//     });
-//   }
-
-//   function handleChangeTask(task) {
-//     dispatch({
-//       type: 'changed',
-//       task: task,
-//     });
-//   }
-
-//   function handleDeleteTask(taskId) {
-//     dispatch({
-//       type: 'deleted',
-//       id: taskId,
-//     });
-//   }
-
-//   return (
-//     <>
-//     <h1> Prague itinerary</h1>
-//     <AddTask onAddTask={handleAddTask} />
-//     <TaskList tasks={tasks} 
-//     onChangeTask={handleChangeTask}
-//     onDeleteTask={handleDeleteTask} />
-//     </>
-//   )
-// }
-
-// function taskReducer(taskState, actions) {
-//   switch (actions.type) {
-//     case 'added': {
-//       return [
-//         ...taskState,
-//         {
-//           text: actions.text,
-//           id: actions.id,
-//           done: false,
-//         }
-//       ]
-//     }
-
-//     case 'changed': {
-//       return taskState.map((task) => {
-//         if (task.id === actions.task.id) {
-//           return actions.task;
-//         } else {
-//           return task;
-//         }
-//       })
-//     }
-
-//     case 'deleted': {
-//       return taskState.filter((t) => t.id !== actions.id);
-//     }
-
-//     default: {
-//       throw Error("Unknown action please check you code");
-//     }
-//   }
-// }
-
-// export function AddTask({ onAddToTask }) {
-//   const [text, setText] = useState("");
-//   return (
-//     <>
-//       <label>
-//         <input
-//           placeholder="Add task"
-//           onChange={(e) => {
-//             setText(e.target.value);
-//           }}
-//         />
-//         <button
-//           onClick={() => {
-//             onAddToTask(text);
-//           }}
-//         >
-//           Add
-//         </button>
-//       </label>
-//     </>
-//   );
-// }
-
-
-// export function TaskList({ tasks, onChangeTask, onDeleteTask }) {
-//   const [editTaskId, setEditTaskId] = useState(null);
-//   return (
-//     <>
-//       <ul>
-//         {tasks.map((task) => (
-//           <li key={task.id}>
-            
-//             <input
-//               type="checkbox"
-//               checked={task.done}
-//               onChange={() => onChangeTask({ ...task, done: !task.done })}
-//             />{" "}
-//             {editTaskId === task.id ? (
-//               <>
-//                 <input
-//                   value={task.text}
-//                   onChange={(e) => onChangeTask({ ...task, text: e.target.value })}
-//                 />
-//                 <button onClick={() => setEditTaskId(null)}>Save</button>
-//               </>
-//             ) : (
-//               <>
-//                 {task.text}
-//                 <button onClick={() => setEditTaskId(task.id)}>Edit</button>
-//               </>
-//             )}
-//             {"  "}
-//             <button onClick={() => onDeleteTask(task.id)}>Delete</button>
-//           </li>
-//         ))}
-//       </ul>
-//     </>
-//   );
-// }
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
-// If you want, you can even move the reducer to a different file:
-
-// export default function App () {
-//   return <TaskApp />
-// }
-
-// export function TaskApp() {
-//   const [tasks, dispatch] = useReducer(taskReducer, initialTasks);
-
-//   function handleAddToTask(text) {
-//     dispatch({
-//       type: 'added',
-//       id: nextId++,
-//       text: text,
-//     });
-//   }
-//   function handleChangeTask(task) {
-//     dispatch({
-//       type: 'changed',
-//       task: task,
-//     });
-//   }
-//   function handleDeleteTask(taaskId) {
-//     dispatch({
-//       type: 'deleted',
-//       id: taaskId,
-//     });
-//   }
-
+// export function Page() {
 //   return (<>
-//     <h1>Prague itinerary</h1>
-//     <AddTask addToTask={handleAddToTask} />
+//   <Section level={1}>
+//     <Heading>Title</Heading>
 
-//     <TaskList tasks={tasks} 
-//     onDeleteTask={handleDeleteTask}
-//     onChangeTask={handleChangeTask} />
+//     <Section level={2}>
+//       <Heading>Heading</Heading>
+//       <Heading>Heading</Heading>
+//       <Heading>Heading</Heading>
+
+//       <Section level={3}>
+//       <Heading>Sub-Heading</Heading>
+//       <Heading>Sub-Heading</Heading>
+//       <Heading>Sub-Heading</Heading>
+
+//       <Section level={4}>
+//       <Heading>Sub-sub-heading</Heading>
+//       <Heading>Sub-sub-heading</Heading>
+//       <Heading>Sub-sub-heading</Heading>
+//     </Section>
+//     </Section>
+//     </Section>
+//   </Section>
 //   </>)
 // }
 
-// export function AddTask( { addToTask }) {
-//   const [text, setText] = useState("");
+// Notice this example doesn’t quite work, yet! All the headings have the 
+// same size because even though you’re using the context, you have not 
+// provided it yet. React doesn’t know where to get it!
 
+// If you don’t provide the context, React will use the default value you’ve 
+// specified in the previous step. In this example, you specified 1 as the 
+// argument to createContext, so useContext(LevelContext) returns 1, 
+// setting all those headings to <h1>. Let’s fix this problem by having 
+// each Section provide its own context.
+
+// Step 3: Provide the context 
+
+// The Section component currently renders its children:
+
+// export default function App() {
+//   return <Page />
+// }
+
+
+// export function Page() {
 //   return (<>
-//   <label>
-//     <input value={text} onChange={(e) => { setText(e.target.value)}} />
-//     {" "}
-//     <button onClick={() => {addToTask(text)}}> Add </button>
-//   </label>
-//   </>);
+//   <Section level={1}>
+//     <Heading>Title</Heading>
+
+//     <Section level={2}>
+//       <Heading>Heading</Heading>
+//       <Heading>Heading</Heading>
+//       <Heading>Heading</Heading>
+
+//       <Section level={3}>
+//       <Heading>Sub-Heading</Heading>
+//       <Heading>Sub-Heading</Heading>
+//       <Heading>Sub-Heading</Heading>
+
+//       <Section level={4}>
+//       <Heading>Sub-sub-heading</Heading>
+//       <Heading>Sub-sub-heading</Heading>
+//       <Heading>Sub-sub-heading</Heading>
+//     </Section>
+//     </Section>
+//     </Section>
+//   </Section>
+//   </>)
 // }
 
 
-// export function TaskList({ tasks, onDeleteTask, onChangeTask }) {
-//   const [edit, setEdit] = useState(null);
+// This tells React: “if any component inside this <Section> asks for LevelContext, 
+// give them this level.” The component will use the value of the nearest 
+{/* <LevelContext.Provider> in the UI tree above it. */}
 
-//   return (
-//   <ul>
-//     {tasks.map((task) => (
-//       <li key={task.id}>
+// It’s the same result as the original code, but you did not need to 
+// pass the level prop to each Heading component! Instead, it “figures 
+// out” its heading level by asking the closest Section above:
 
-//         <input type="checkbox" checked={task.done}
-//         onChange={() => onChangeTask({
-//           ...task, done: !task.done
-//         })} />
+// 1- You pass a level prop to the <Section>.
+// 2- Section wraps its children into <LevelContext.Provider value={level}>.
+// 2- Heading asks the closest value of LevelContext above with useContext(LevelContext).
 
-//         { edit === task.id ? (<>
-//         <input value={task.text} onChange={(e) => onChangeTask({...task, text: e.target.value})} />
-//         <button onClick={() => setEdit(null)}>Save</button>
-//         </>) : (<>
-//         {task.text}
-//         <button onClick={()=> setEdit(task.id)}>Edit</button>
-//          </>)
-//          }
+// ===================================================================
+// Using and providing context from the same component
 
-//       <button onClick={() => onDeleteTask(task.id)}>Delete</button>
+// Currently, you still have to specify each section’s level manually:
 
-//       </li>
-//     ))}
-//   </ul>
-//   );
-// }
+// Since context lets you read information from a component above, each 
+// Section could read the level from the Section above, and pass level + 1 
+// down automatically. Here is how you could do it:
+
+// to see go to ---> Section.jsx
+
+
+// Now both Heading and Section read the LevelContext to figure out how 
+// “deep” they are. And the Section wraps its children into the LevelContext 
+// to specify that anything inside of it is at a “deeper” level.
+
+// Note: 
+// This example uses heading levels because they show visually how nested 
+// components can override context. But context is useful for many other 
+// use cases too. You can pass down any information needed by the entire 
+// subtree: the current color theme, the currently logged in user, and 
+// so on.
+// =================================================================
+// Context passes through intermediate components
+
+// You can insert as many components as you like between the component 
+// that provides context and the one that uses it. This includes both 
+// built-in components like <div> and components you might build yourself.
+
+// In this example, the same Post component (with a dashed border) is rendered 
+// at two different nesting levels. Notice that the <Heading> inside of 
+// it gets its level automatically from the closest <Section>:
+
+export default function App() { return <ProfilePage /> }
+
+
+export function ProfilePage() {
+  return (
+    <Section>
+      <Heading>My Profile</Heading>
+      <Post title='Helllo traveller!'
+      body="Read about my adventures" />
+      <AllPosts />
+    </Section>
+  )
+}
+
+export function AllPosts() {
+  return(
+    <Section>
+      <Heading>Posts</Heading>
+      <RecentPosts />
+    </Section>
+  )
+}
+
+export function RecentPosts() {
+  return (
+    <Section>
+      <Heading>Recent Posts</Heading>
+      <Post title='Flavours of Lisbon'
+      body='...those pasteis de nata!' />
+
+      <Post
+        title="Buenos Aires in the rhythm of tango"
+        body="I loved it!"
+      />
+    </Section>
+  )
+}
+
+export function Post({title, body}) {
+  return (
+    <Section>
+      <Heading>
+        {title}
+      </Heading>
+      <p> <i>{body}</i> </p>
+    </Section>
+  );
+}
+
+// You didn’t do anything special for this to work. A Section specifies 
+// the context for the tree inside it, so you can insert a <Heading> 
+// anywhere, and it will have the correct size. Try it in the sandbox above!
+
+
+// Context lets you write components that “adapt to their surroundings” 
+// and display themselves differently depending on where 
+// (or, in other words, in which context) they are being rendered.
+
+
+// How context works might remind you of CSS property inheritance. In 
+// CSS, you can specify color: blue for a <div>, and any DOM node 
+// inside of it, no matter how deep, will inherit that color unless 
+// some other DOM node in the middle overrides it with color: green. 
+// Similarly, in React, the only way to override some context coming 
+// from above is to wrap children into a context provider with a 
+// different value.
+
+
+// In CSS, different properties like color and background-color don’t 
+// override each other. You can set all  <div>’s color to red without impacting 
+// background-color. Similarly, different React contexts don’t override 
+// each other. Each context that you make with createContext() is 
+// completely separate from other ones, and ties together components 
+// using and providing that particular context. One component may 
+// use or provide many different contexts without a problem.
+
+// Before you use context 
+// Context is very tempting to use! However, this also means it’s 
+// too easy to overuse it. Just because you need to pass some props 
+// several levels deep doesn’t mean you should put that information 
+// into context.
+
+// Here’s a few alternatives you should consider before using context:
+
+// 1-> Start by passing props. If your components are not trivial, 
+// it’s not unusual to pass a dozen props down through a dozen 
+// components. It may feel like a slog, but it makes it very clear 
+// which components use which data! The person maintaining your code 
+// will be glad you’ve made the data flow explicit with props.
+// 2-> Extract components and pass JSX as children to them. If you 
+// pass some data through many layers of intermediate components that 
+// don’t use that data (and only pass it further down), this often 
+// means that you forgot to extract some components along the way. 
+// For example, maybe you pass data props like posts to visual 
+// components that don’t use them directly, like <Layout posts={posts} />. 
+// Instead, make Layout take children as a prop, and render 
+//<Layout><Posts posts={posts} /></Layout>. This reduces the number 
+// of layers between the component specifying the data and the one 
+// that needs it.
+
+
+// If neither of these approaches works well for you, consider context.
+
+// Use cases for context 
+
+// -> Theming: If your app lets the user change its appearance 
+// (e.g. dark mode), you can put a context provider at the top of 
+// your app, and use that context in components that need to adjust 
+// their visual look.
+// -> Current account: Many components might need to know the 
+// currently logged in user. Putting it in context makes it 
+// convenient to read it anywhere in the tree. Some apps also let 
+// you operate multiple accounts at the same time (e.g. to leave a comment
+//  as a different user). In those cases, it can be convenient to 
+// wrap a part of the UI into a nested provider with a different 
+// current account value.
+// -> Routing: Most routing solutions use context internally to hold 
+// the current route. This is how every link “knows” whether it’s active 
+// or not. If you build your own router, you might want to do it too.
+// -> Managing state: As your app grows, you might end up with a lot 
+// of state closer to the top of your app. Many distant components 
+// below may want to change it. It is common to use a reducer together 
+// with context to manage complex state and pass it down to distant 
+// components without too much hassle.
+
+
+// Context is not limited to static values. If you pass a different value 
+// on the next render, React will update all the components reading it 
+// below! This is why context is often used in combination with state.
+
+// In general, if some information is needed by distant components in 
+// different parts of the tree, it’s a good indication that context will 
+// help you.
+
+// Recap
+// -> Context lets a component provide some information to the entire 
+// tree below it.
+// -> To pass context:
+// 1-> Create and export it with export const MyContext = createContext(defaultValue).
+// 2->  Pass it to the useContext(MyContext) Hook to read it in any child component, no matter how deep.
+// 3-> Wrap children into <MyContext.Provider value={...}> to provide it from a parent.
+
+// -> Context passes through any components in the middle.
+// -> Context lets you write components that “adapt to their surroundings”.
+// -> Before you use context, try passing props or passing JSX as children.

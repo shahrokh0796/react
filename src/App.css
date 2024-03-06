@@ -1,19 +1,4 @@
-
-.counter {
-    padding: 1rem 1rem;
-    border: 1px solid #dadada;
-    text-align: center;
-    display: inline-block;
-    margin-inline-end : 1rem;
-    cursor: pointer;
-}
-.button {
-    cursor: pointer;
-}
-.hover {
-    background-color: pink;
-}
-
-.fancy {
-    border: 5px solid orange;
+section {
+    border: 1px solid gray;
+    padding: 1rem;
 }
